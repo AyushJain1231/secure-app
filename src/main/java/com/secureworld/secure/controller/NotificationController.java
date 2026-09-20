@@ -1,6 +1,7 @@
 package com.secureworld.secure.controller;
 
 import com.secureworld.secure.services.NotificationService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,7 +13,8 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    public NotificationController(NotificationService notificationService) {
+    public NotificationController(
+            @Qualifier("notificationServiceV2Impl") NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
