@@ -1,6 +1,8 @@
 package com.secureworld.secure.services;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface NotificationService {
 
-    void sendNotificationsAsync();
+    CompletableFuture<Void> sendNotificationsAsync();
 }

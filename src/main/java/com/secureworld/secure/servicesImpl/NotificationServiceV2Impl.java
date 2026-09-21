@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service("notificationServiceV2Impl")
 public class NotificationServiceV2Impl implements NotificationService {
 
@@ -21,15 +23,17 @@ public class NotificationServiceV2Impl implements NotificationService {
 
     @Override
     @Async("notificationTaskExecutor")
-    public void sendNotificationsAsync() {
-        for (AppUser user : userRepository.findAll()) {
-            try {
+    public CompletableFuture<Void> sendNotificationsAsync() {
+        try {
+            for (AppUser user : userRepository.findAll()) {
                 logger.info("Notification V2 for user ID {} at email {}",
                         user.getUserId(), user.getEmail());
-            } catch (RuntimeException exception) {
-                logger.error("Failed to create  V2 for user ID {} at email {}",
-                        user.getUserId(), user.getEmail(), exception);
             }
+            logger.info("Notification V2 processing completed successfully");
+            return CompletableFuture.completedFuture(null);
+        } catch (RuntimeException exception) {
+            logger.error("Notification V2 processing failed", exception);
+            return CompletableFuture.failedFuture(exception);
         }
     }
 }

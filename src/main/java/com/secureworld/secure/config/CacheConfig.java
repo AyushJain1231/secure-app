@@ -1,6 +1,7 @@
 package com.secureworld.secure.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -13,6 +14,11 @@ import java.time.Duration;
 @Configuration
 @EnableCaching
 public class CacheConfig {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
 
     @Bean
     public CacheManager cacheManager(

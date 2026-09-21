@@ -3,9 +3,12 @@ package com.secureworld.secure.restcontrolleradvice;
 import com.secureworld.secure.exception.DepartmentNotFoundException;
 import com.secureworld.secure.exception.EmployeeNotFoundException;
 import com.secureworld.secure.auth.DuplicateUserException;
+import com.secureworld.secure.servicesImpl.CacheManagementServiceImpl.CacheNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -54,6 +57,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation() {
         return error(HttpStatus.CONFLICT, "A user with the supplied unique value already exists");
+    }
+
+    @ExceptionHandler(CacheNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleCacheNotFound(CacheNotFoundException ex) {
+        return error(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class})
+    public ResponseEntity<Map<String, Object>> handleInvalidRequest(Exception ex) {
+        String message = ex instanceof MethodArgumentNotValidException validationException
+                ? validationException.getBindingResult().getFieldErrors().stream()
+                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+                .findFirst()
+                .orElse("Request body is invalid")
+                : "Request body is invalid JSON";
+        return error(HttpStatus.BAD_REQUEST, message);
     }
 
     private ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
