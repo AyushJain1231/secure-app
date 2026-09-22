@@ -4,13 +4,18 @@ import com.secureworld.secure.exception.DepartmentNotFoundException;
 import com.secureworld.secure.exception.EmployeeNotFoundException;
 import com.secureworld.secure.auth.DuplicateUserException;
 import com.secureworld.secure.servicesImpl.CacheManagementServiceImpl.CacheNotFoundException;
+import com.secureworld.secure.weather.exception.WeatherApiException;
+import com.secureworld.secure.weather.exception.WeatherApiTimeoutException;
+import com.secureworld.secure.weather.exception.WeatherCityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import jakarta.validation.ConstraintViolationException;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -62,6 +67,36 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CacheNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleCacheNotFound(CacheNotFoundException ex) {
         return error(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(WeatherCityNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleWeatherCityNotFound(WeatherCityNotFoundException ex) {
+        return error(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(WeatherApiTimeoutException.class)
+    public ResponseEntity<Map<String, Object>> handleWeatherTimeout(WeatherApiTimeoutException ex) {
+        return error(HttpStatus.GATEWAY_TIMEOUT, ex.getMessage());
+    }
+
+    @ExceptionHandler(WeatherApiException.class)
+    public ResponseEntity<Map<String, Object>> handleWeatherApiFailure(WeatherApiException ex) {
+        return error(HttpStatus.BAD_GATEWAY, ex.getMessage());
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
+        String message = ex.getConstraintViolations().stream()
+                .findFirst()
+                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
+                .orElse("Request parameters are invalid");
+        return error(HttpStatus.BAD_REQUEST, message);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingRequestParameter(
+            MissingServletRequestParameterException ex) {
+        return error(HttpStatus.BAD_REQUEST, ex.getParameterName() + " is required");
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class})
